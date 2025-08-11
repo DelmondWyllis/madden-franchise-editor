@@ -7,9 +7,9 @@ const zlib = require('zlib');
 // const through2 = require('through2');
 // const debug = require('debug')('worker-service');
 
-const DDSFile = require('madden-file-tools/filetypes/DDSFile');
-const DDSParser = require('madden-file-tools/streams/DDSParser');
-const ASTParser = require('madden-file-tools/streams/ASTParser');
+// const DDSFile = require('madden-file-tools/filetypes/DDSFile');
+// const DDSParser = require('madden-file-tools/streams/DDSParser');
+// const ASTParser = require('madden-file-tools/streams/ASTParser');
 
 let workerService = {};
 

@@ -4,7 +4,7 @@ const fsPromises = require('fs/promises');
 const { pipeline, Writable } = require('stream');
 const EventEmitter = require('events').EventEmitter;
 const schemaGenerationService = require('./schemaGenerationService');
-const CASBlockParser = require('madden-file-tools/streams/CASBlockParser');
+const CASBlockParser = require('../libs/madden-file-tools/CASBlockParser');
 
 let schemaSearchService = {};
 schemaSearchService.eventEmitter = new EventEmitter();
