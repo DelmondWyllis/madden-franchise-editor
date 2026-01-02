@@ -4,11 +4,11 @@
 
 .table-wrapper {
   display: grid;
-  grid-template-rows: 40px 80px calc(100% - 120px);
+  grid-template-rows: 40px 120px calc(100% - 160px);
   height: 100%;
 
   @media (min-width: $breakpoint-md) {
-    grid-template-rows: 40px 73px calc(100% - 113px);
+    grid-template-rows: 40px 110px calc(100% - 150px);
   }
 }
 
@@ -55,6 +55,41 @@ td.active-row {
   .selectr-selected {
     border: 1px solid darkgrey;
   }
+}
+
+.table-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 0 5px;
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .selectr-selected {
+    border: 1px solid darkgrey;
+  }
+}
+
+.column-filter-input {
+  min-width: 180px;
+  padding: 6px 8px;
+  border: 1px solid #c9c9c9;
+  border-radius: 4px;
+}
+
+.column-filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.column-filter-clear {
+  padding: 6px 12px;
 }
 
 .toggle-types {

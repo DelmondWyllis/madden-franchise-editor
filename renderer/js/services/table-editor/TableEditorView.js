@@ -22,9 +22,14 @@ class TableEditorView {
         this.currentlySelectedColumn = 0;
         this.loader = document.querySelector('.loader-wrapper');
         this.referenceEditorSelector = this.parent.referenceEditorSelector;
+        this.columnFilterSelectr = null;
+        this.columnFilterInput = null;
+        this.columnFilterToggle = null;
+        this.columnFilterClearButton = null;
+        this.columnFilterUpdateTimeout = null;
 
         this.hot = new Handsontable(this.baseContainer, {
-            // filters: true,
+            filters: true,
             width: '100%',
             height: '100%',
             rowHeaders: true,
@@ -34,6 +39,7 @@ class TableEditorView {
             currentRowClassName: 'active-row',
             licenseKey: 'non-commercial-and-evaluation',
             afterChange: this._processChanges.bind(this),
+            afterOnCellMouseDown: this._handleCellMouseDown.bind(this),
             afterSelection: this._processSelection.bind(this),
             contextMenu: contextMenuService.getContextMenu(this),
             rowHeaders: function (index) {
@@ -103,6 +109,14 @@ class TableEditorView {
                 this.file.settings.saveOnChange = true;
             }
         }
+    };
+
+    _handleCellMouseDown(event, coords) {
+        if (!coords || coords.row !== -1 || coords.col < 0) {
+            return;
+        }
+
+        this._setColumnFilterFromIndex(coords.col);
     };
 
     _addEventListeners() {
@@ -190,6 +204,43 @@ class TableEditorView {
     
         const goJumpToColumnButton = document.querySelector('.btn-go-jump-to-column');
         goJumpToColumnButton.addEventListener('click', goJumpToColumnListener);
+
+        const columnFilterSelect = document.querySelector('#column-filter-select');
+        this.columnFilterSelectr = new Selectr(columnFilterSelect, {
+            data: null
+        });
+
+        this.columnFilterInput = document.querySelector('#column-filter-input');
+        this.columnFilterToggle = document.querySelector('.column-filter-toggle-input');
+        this.columnFilterClearButton = document.querySelector('.column-filter-clear');
+
+        const scheduleFilterUpdate = () => {
+            clearTimeout(this.columnFilterUpdateTimeout);
+            this.columnFilterUpdateTimeout = setTimeout(() => {
+                if (this.columnFilterToggle.checked) {
+                    this._applyColumnFilter();
+                } else {
+                    this._clearColumnFilter();
+                }
+            }, 150);
+        };
+
+        this.columnFilterSelectr.on('selectr.change', () => {
+            scheduleFilterUpdate();
+        });
+
+        this.columnFilterInput.addEventListener('input', () => {
+            scheduleFilterUpdate();
+        });
+
+        this.columnFilterToggle.addEventListener('change', () => {
+            scheduleFilterUpdate();
+        });
+
+        this.columnFilterClearButton.addEventListener('click', () => {
+            this._resetColumnFilterInputs();
+            this._clearColumnFilter();
+        });
         
         const backLink = document.querySelector('.back-link');
         backLink.addEventListener('click', () => {
@@ -320,6 +371,10 @@ class TableEditorView {
             colWidths: this._calculateColumnWidths(columns, table)
         });
 
+        this._updateColumnFilterOptions(table);
+        this._resetColumnFilterInputs();
+        this._clearColumnFilter();
+
         this.hot.selectCell(this.rowIndexToSelect, this.columnIndexToSelect);
 
         utilService.hide(this.loader);
@@ -406,6 +461,99 @@ class TableEditorView {
         
             return colMinWidth > calculatedWidth ? colMinWidth : calculatedWidth;
         });
+    };
+
+    _updateColumnFilterOptions(table) {
+        if (!this.columnFilterSelectr) {
+            return;
+        }
+
+        const options = (table.offsetTable || []).map((offset, index) => {
+            return {
+                'value': index,
+                'text': offset.name
+            };
+        });
+
+        this.columnFilterSelectr.removeAll();
+        this.columnFilterSelectr.add(options);
+
+        if (options.length > 0) {
+            this.columnFilterSelectr.setValue(options[0].value);
+        }
+    };
+
+    _setColumnFilterFromIndex(index) {
+        if (!this.columnFilterSelectr) {
+            return;
+        }
+
+        this.columnFilterSelectr.setValue(index);
+
+        if (this.columnFilterToggle) {
+            this.columnFilterToggle.checked = true;
+        }
+
+        if (this.columnFilterInput) {
+            this.columnFilterInput.focus();
+            this.columnFilterInput.select();
+        }
+
+        if (this.columnFilterInput?.value?.trim()) {
+            this._applyColumnFilter();
+        }
+    };
+
+    _resetColumnFilterInputs() {
+        if (this.columnFilterInput) {
+            this.columnFilterInput.value = '';
+        }
+
+        if (this.columnFilterToggle) {
+            this.columnFilterToggle.checked = false;
+        }
+    };
+
+    _getSelectedFilterColumnIndex() {
+        if (!this.columnFilterSelectr) {
+            return 0;
+        }
+
+        const selected = this.columnFilterSelectr.getValue(true);
+        const value = selected?.value ?? this.columnFilterSelectr.getValue();
+        const parsed = parseInt(value, 10);
+
+        return Number.isNaN(parsed) ? 0 : parsed;
+    };
+
+    _applyColumnFilter() {
+        if (!this.selectedTable || !this.hot) {
+            return;
+        }
+
+        const query = this.columnFilterInput?.value?.trim();
+        const filters = this.hot.getPlugin('filters');
+
+        filters.clearConditions();
+
+        if (!query) {
+            filters.filter();
+            return;
+        }
+
+        const columnIndex = this._getSelectedFilterColumnIndex();
+        filters.addCondition(columnIndex, 'contains', [query]);
+        filters.filter();
+    };
+
+    _clearColumnFilter() {
+        if (!this.hot) {
+            return;
+        }
+
+        const filters = this.hot.getPlugin('filters');
+        filters.clearConditions();
+        filters.filter();
     };
 
     showReferenceViewer(referencedRecordData, references) {
