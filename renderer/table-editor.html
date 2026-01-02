@@ -9,6 +9,17 @@
           <select class="table-selector"></select>
           <div class="jump-to-column table-action-link action-button">Jump to column</div>
         </div>
+        <div class="table-filter-bar">
+          <label for="column-filter-select">Column</label>
+          <select id="column-filter-select" class="column-filter-select"></select>
+          <label for="column-filter-input">Search</label>
+          <input id="column-filter-input" class="column-filter-input" type="text" placeholder="Search in column">
+          <label class="column-filter-toggle">
+            <input type="checkbox" class="column-filter-toggle-input">
+            Filter rows
+          </label>
+          <button class="action-button column-filter-clear" type="button">Clear</button>
+        </div>
         <div class="table-pins-wrapper">
           <span class="pin-icon"></span>
           <div class="pins-list">
